@@ -30,7 +30,7 @@ CATEGORY_VARIANTS = {
     "woningcorporatie": "opdrachtgever",
 }
 
-# Sommige bedrijven delen een e-mailadres (info@rogroep.nl komt 4x voor, over twee
+# Sommige bedrijven delen een e-mailadres (hetzelfde adres kan 4x voorkomen, over twee
 # varianten heen). Bij zo'n botsing wint de variant die hier het hoogst staat.
 VARIANT_PRIORITY = ["opdrachtgever", "ontwerp", "uitvoerend"]
 

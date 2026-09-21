@@ -77,7 +77,7 @@ Er wordt alleen gemaild naar de kolom **`Algemeen e-mail`** - dus naar
 `info@`-achtige adressen, niet naar de persoonlijke adressen in de kolommen
 Directie / Bouw&projecten / Duurzaamheid.
 
-**Gedeelde adressen.** Meerdere bedrijven delen soms één adres (`info@rogroep.nl`
+**Gedeelde adressen.** Meerdere bedrijven delen soms één adres (`info@voorbeeld.nl`
 staat vier keer in het bestand). Die worden samengevoegd tot één mail. Valt zo'n
 adres in twee verschillende varianten, dan wint de hoogste uit `VARIANT_PRIORITY`:
 `opdrachtgever` > `ontwerp` > `uitvoerend`. De dry-run laat elke samenvoeging zien.
