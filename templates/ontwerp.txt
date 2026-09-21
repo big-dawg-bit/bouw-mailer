@@ -1,0 +1,18 @@
+Subject: TODO onderwerp voor architecten en ingenieurs - {bedrijfsnaam}
+
+Goedendag,
+
+TODO: openingszin. {bedrijfsnaam} is een {categorie} in {plaats} - verwijs naar
+iets concreets uit hun werk als je dat hebt.
+
+TODO: wat bied je aan? Voor een ontwerppartij gaat het eerder over specificatie,
+materiaalkeuze, normen en berekeningen dan over uitvoering.
+
+TODO: sluit af met een kleine, concrete vraag.
+
+Met vriendelijke groet,
+TODO je naam
+TODO je bedrijf - telefoon - website
+
+--
+Geen berichten meer ontvangen? Antwoord met "stop" en ik haal je uit de lijst.

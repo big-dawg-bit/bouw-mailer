@@ -1,0 +1,18 @@
+Subject: TODO onderwerp voor ontwikkelaars en corporaties - {bedrijfsnaam}
+
+Goedendag,
+
+TODO: openingszin. Dit zijn de opdrachtgevende partijen - ontwikkelaars,
+beleggers en woningcorporaties in {plaats}.
+
+TODO: wat bied je aan? Hier tellen portefeuille, rendement, verduurzamings-
+opgave en regelgeving zwaarder dan de technische details.
+
+TODO: sluit af met een kleine, concrete vraag.
+
+Met vriendelijke groet,
+TODO je naam
+TODO je bedrijf - telefoon - website
+
+--
+Geen berichten meer ontvangen? Antwoord met "stop" en ik haal je uit de lijst.

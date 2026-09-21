@@ -1,0 +1,22 @@
+# Secrets - NEVER commit
+.env
+
+# Contact data (personal data / GDPR) - NEVER commit
+data/
+*.xlsx
+*.xls
+*.csv
+sent_log.csv
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# Editors / OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
