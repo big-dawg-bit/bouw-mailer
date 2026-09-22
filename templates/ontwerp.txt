@@ -2,7 +2,7 @@ Subject: TODO onderwerp voor architecten en ingenieurs - {bedrijfsnaam}
 
 Goedendag,
 
-TODO: openingszin. {bedrijfsnaam} is een {categorie} in {plaats} - verwijs naar
+TODO: openingszin. {bedrijfsnaam} is een {categorie}{in_plaats} - verwijs naar
 iets concreets uit hun werk als je dat hebt.
 
 TODO: wat bied je aan? Voor een ontwerppartij gaat het eerder over specificatie,

@@ -33,9 +33,13 @@ def render(variant: str, recipient) -> Message:
             f"gevolgd door een lege regel."
         )
 
+    city = (getattr(recipient, "city", "") or "").strip()
     fields = {
         "bedrijfsnaam": recipient.company,
-        "plaats": getattr(recipient, "city", "") or "",
+        "plaats": city,
+        # Midden in een zin: levert " in Maastricht" of niets, zodat een lege
+        # Plaats geen dubbele spatie achterlaat.
+        "in_plaats": f" in {city}" if city else "",
         "categorie": recipient.category,
     }
     try:
@@ -45,6 +49,12 @@ def render(variant: str, recipient) -> Message:
         sys.exit(
             f"FOUT: {variant}.txt gebruikt onbekende placeholder {exc}. "
             f"Beschikbaar: {', '.join('{' + k + '}' for k in fields)}"
+        )
+    except (ValueError, IndexError) as exc:
+        sys.exit(
+            f"FOUT: {variant}.txt bevat een losse accolade ({exc}).\n"
+            f"      Wil je letterlijk {{ of }} in de tekst? Schrijf ze dubbel: "
+            f"{{{{ en }}}}."
         )
     return Message(subject=subject, body=body.strip() + "\n")
 
@@ -66,12 +76,16 @@ class Sender:
         self.config = config
         self.smtp = None
 
+    def _connect(self) -> None:
+        cfg = self.config
+        self.smtp = smtplib.SMTP(cfg.smtp_host, cfg.smtp_port, timeout=30)
+        self.smtp.starttls(context=ssl.create_default_context())
+        self.smtp.login(cfg.smtp_user, cfg.smtp_password)
+
     def __enter__(self):
         cfg = self.config
         try:
-            self.smtp = smtplib.SMTP(cfg.smtp_host, cfg.smtp_port, timeout=30)
-            self.smtp.starttls(context=ssl.create_default_context())
-            self.smtp.login(cfg.smtp_user, cfg.smtp_password)
+            self._connect()
         except smtplib.SMTPAuthenticationError:
             sys.exit(
                 "FOUT: inloggen geweigerd door de mailserver.\n"
@@ -84,7 +98,15 @@ class Sender:
         return self
 
     def send(self, email: EmailMessage) -> None:
-        self.smtp.send_message(email)
+        try:
+            self.smtp.send_message(email)
+        except smtplib.SMTPServerDisconnected:
+            # Gmail verbreekt bij een lange run soms de verbinding. Eén keer
+            # opnieuw verbinden en deze mail alsnog proberen; lukt dat niet,
+            # dan laten we de fout door zodat de loop hem als MISLUKT logt.
+            print("      verbinding verbroken, opnieuw verbinden...")
+            self._connect()
+            self.smtp.send_message(email)
 
     def __exit__(self, *exc_info):
         if self.smtp is not None:

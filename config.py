@@ -8,7 +8,6 @@ from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent
 TEMPLATE_DIR = BASE_DIR / "templates"
-SENT_LOG = BASE_DIR / "sent_log.csv"
 
 load_dotenv(BASE_DIR / ".env")
 
@@ -55,6 +54,9 @@ class Config:
 
         excel = os.getenv("EXCEL_PATH", "data/emailaddressen-bouwbedrijven.xlsx")
         self.excel_path = (BASE_DIR / excel).resolve()
+
+        log = os.getenv("SENT_LOG_PATH", "sent_log.csv")
+        self.sent_log = (BASE_DIR / log).resolve()
 
     def require_smtp(self) -> None:
         """Roep dit aan vlak voordat er echt verstuurd wordt."""

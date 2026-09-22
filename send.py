@@ -12,15 +12,15 @@ import sys
 import time
 from datetime import datetime
 
-from config import SENT_LOG, VARIANTS, Config
-from mailer import Sender, build, render
+from config import VARIANTS, Config
+from mailer import Sender, build, load_template, render
 from recipients import load_recipients
 
 
-def read_sent_log() -> set:
-    if not SENT_LOG.exists():
+def read_sent_log(config) -> set:
+    if not config.sent_log.exists():
         return set()
-    with SENT_LOG.open(newline="", encoding="utf-8") as handle:
+    with config.sent_log.open(newline="", encoding="utf-8") as handle:
         return {
             row["email"].strip().lower()
             for row in csv.DictReader(handle)
@@ -28,9 +28,9 @@ def read_sent_log() -> set:
         }
 
 
-def append_sent_log(recipient) -> None:
-    is_new = not SENT_LOG.exists()
-    with SENT_LOG.open("a", newline="", encoding="utf-8") as handle:
+def append_sent_log(config, recipient) -> None:
+    is_new = not config.sent_log.exists()
+    with config.sent_log.open("a", newline="", encoding="utf-8") as handle:
         writer = csv.writer(handle)
         if is_new:
             writer.writerow(["timestamp", "email", "company", "variant"])
@@ -44,7 +44,7 @@ def append_sent_log(recipient) -> None:
         )
 
 
-def parse_args():
+def parse_args(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--send",
@@ -60,11 +60,11 @@ def parse_args():
         action="store_true",
         help="negeer sent_log.csv en stuur ook naar al gemailde adressen",
     )
-    return parser.parse_args()
+    return parser.parse_args(argv)
 
 
-def main() -> int:
-    args = parse_args()
+def main(argv=None, sender_factory=Sender) -> int:
+    args = parse_args(argv)
     config = Config()
     report = load_recipients(config.excel_path)
 
@@ -93,7 +93,7 @@ def main() -> int:
     if args.variant:
         targets = [r for r in targets if r.variant == args.variant]
 
-    already = set() if args.resend else read_sent_log()
+    already = set() if args.resend else read_sent_log(config)
     if already:
         before = len(targets)
         targets = [r for r in targets if r.email.lower() not in already]
@@ -125,25 +125,49 @@ def main() -> int:
             print(f"Onderwerp: {message.subject}")
             print(message.body)
             print("-" * 60)
-        print("Klopt het? Draai dan:  python send.py --send --limit 1")
+
+        print("\nVolledige lijst (adres -> bedrijf [variant]):\n")
+        for recipient in targets:
+            regel = f"   {recipient.email} -> {recipient.company} [{recipient.variant}]"
+            if recipient.also:
+                regel += f"  (+ ook {', '.join(recipient.also)})"
+            print(regel)
+
+        print("\nKlopt het? Draai dan:  python send.py --send --limit 1")
         return 0
 
     config.require_smtp()
 
+    # Geen mail de deur uit zolang er nog TODO's in de teksten staan.
+    onaf = [
+        f"templates/{variant}.txt"
+        for variant in sorted({r.variant for r in targets})
+        if "TODO" in load_template(variant)
+    ]
+    if onaf:
+        sys.exit(
+            "FOUT: deze teksten zijn nog niet af (er staat nog TODO in):\n"
+            + "\n".join(f"      - {naam}" for naam in onaf)
+            + "\n      Schrijf ze eerst af. Controleren kan met: python send.py"
+        )
+
     sent = 0
     failed = []
-    with Sender(config) as sender:
+    with sender_factory(config) as sender:
         for index, recipient in enumerate(targets, start=1):
-            message = render(recipient.variant, recipient)
-            email = build(config, recipient, message)
             try:
+                # Ook renderen en opbouwen binnen de try: een bedrijfsnaam met
+                # een regeleinde laat de Subject-header struikelen, en dat mag
+                # de rest van de run niet meeslepen.
+                message = render(recipient.variant, recipient)
+                email = build(config, recipient, message)
                 sender.send(email)
-            except Exception as exc:  # één slecht adres mag de run niet slopen
+            except Exception as exc:  # één slechte rij mag de run niet slopen
                 failed.append((recipient.email, str(exc)))
                 print(f"[{index}/{len(targets)}] MISLUKT {recipient.email}: {exc}")
                 continue
 
-            append_sent_log(recipient)
+            append_sent_log(config, recipient)
             sent += 1
             print(
                 f"[{index}/{len(targets)}] verstuurd -> {recipient.email} "

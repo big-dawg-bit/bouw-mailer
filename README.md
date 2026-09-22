@@ -49,7 +49,21 @@ gegevens; die horen niet in een publieke repo, los van de wachtwoordvraag.
 `TODO`-markeringen. Vervang die door je eigen tekst voordat je verstuurt.
 
 Formaat: eerste regel `Subject: ...`, dan een lege regel, dan de body.
-Beschikbare placeholders: `{bedrijfsnaam}`, `{plaats}`, `{categorie}`.
+
+Beschikbare placeholders:
+
+| Placeholder | Levert | Gebruik |
+|---|---|---|
+| `{bedrijfsnaam}` | `Smeets Bouw BV` | overal |
+| `{categorie}` | `aannemer` | overal |
+| `{plaats}` | `Maastricht`, of leeg | als de plaats los staat |
+| `{in_plaats}` | ` in Maastricht`, of niets | **midden in een zin** |
+
+Niet elk bedrijf heeft een plaats in het bestand. Gebruik daarom `{in_plaats}`
+zodra de plaats middenin een zin staat: bij een leeg veld valt het woord "in"
+mee weg, in plaats van dat je "...juist Bouwbedrijf X in  aanschrijft" verstuurt.
+
+Wil je letterlijk een accolade in de tekst? Schrijf hem dubbel: `{{` en `}}`.
 
 ## Gebruiken
 
@@ -62,6 +76,25 @@ python send.py --send --variant ontwerp  # alleen één segment
 
 Een dry-run is de standaard. Zonder `--send` wordt er geen verbinding met de
 mailserver gemaakt en gaat er niets de deur uit.
+
+De dry-run toont eerst één voorbeeldmail per variant, en daarna de volledige
+koppeling van adres aan bedrijf:
+
+```
+Volledige lijst (adres -> bedrijf [variant]):
+
+   info@voorbeeld.nl -> Voorbeeld Vastgoed BV [opdrachtgever]
+   info@tweede.nl -> Tweede Ontwikkeling BV [opdrachtgever]  (+ ook Tweede Beheer B.V.)
+```
+
+Loop die lijst na voordat je verstuurt: hier zie je of elk adres aan het juiste
+bedrijf en de juiste tekst hangt. `(+ ook ...)` betekent dat meer bedrijven dat
+adres delen; die krijgen samen één mail, op naam van het bedrijf dat ervoor staat.
+
+**Onafgemaakte teksten worden geweigerd.** Staat er nog `TODO` in een template
+die verstuurd zou worden, dan stopt `--send` met een foutmelding voordat er ook
+maar één mail uitgaat. De dry-run blijft wel gewoon werken, zodat je tussendoor
+kunt controleren.
 
 ## Hoe de indeling werkt
 
@@ -80,7 +113,9 @@ Directie / Bouw&projecten / Duurzaamheid.
 **Gedeelde adressen.** Meerdere bedrijven delen soms één adres (`info@voorbeeld.nl`
 staat vier keer in het bestand). Die worden samengevoegd tot één mail. Valt zo'n
 adres in twee verschillende varianten, dan wint de hoogste uit `VARIANT_PRIORITY`:
-`opdrachtgever` > `ontwerp` > `uitvoerend`. De dry-run laat elke samenvoeging zien.
+`opdrachtgever` > `ontwerp` > `uitvoerend`. Het winnende bedrijf levert ook de
+naam, plaats en categorie die in de mail komen te staan; de andere namen worden
+er in de dry-run achter getoond. Elke samenvoeging wordt gemeld.
 
 ## sent_log.csv
 

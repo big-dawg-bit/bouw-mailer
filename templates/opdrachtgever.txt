@@ -3,7 +3,7 @@ Subject: TODO onderwerp voor ontwikkelaars en corporaties - {bedrijfsnaam}
 Goedendag,
 
 TODO: openingszin. Dit zijn de opdrachtgevende partijen - ontwikkelaars,
-beleggers en woningcorporaties in {plaats}.
+beleggers en woningcorporaties{in_plaats}.
 
 TODO: wat bied je aan? Hier tellen portefeuille, rendement, verduurzamings-
 opgave en regelgeving zwaarder dan de technische details.

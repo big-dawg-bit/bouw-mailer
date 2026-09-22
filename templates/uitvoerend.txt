@@ -2,8 +2,8 @@ Subject: TODO onderwerp voor aannemers - {bedrijfsnaam}
 
 Goedendag,
 
-TODO: schrijf hier je openingszin. Noem waarom je juist {bedrijfsnaam} in
-{plaats} aanschrijft - een concrete reden werkt beter dan een algemene intro.
+TODO: schrijf hier je openingszin. Noem waarom je juist {bedrijfsnaam}{in_plaats}
+aanschrijft - een concrete reden werkt beter dan een algemene intro.
 
 TODO: wat bied je aan, in twee of drie zinnen? Voor een aannemer draait het om
 uitvoering: planning, kosten, materiaal, mensen op de bouw.

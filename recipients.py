@@ -127,19 +127,24 @@ def load_recipients(excel_path: Path) -> LoadReport:
             continue
 
         # Zelfde adres, ander bedrijf: één mail sturen, niet twee.
-        existing.also.append(company)
         if VARIANT_PRIORITY.index(variant) < VARIANT_PRIORITY.index(existing.variant):
+            # De nieuwe rij wint. Neem álle velden over, anders staat straks de
+            # naam van het ene bedrijf in de tekst van het andere.
             merged.append(
                 f"{email}: {company} ({variant}) wint van "
                 f"{existing.company} ({existing.variant})"
             )
-            existing.variant = variant
+            existing.also.append(existing.company)
+            existing.company = company
             existing.category = category
+            existing.city = cell(row, COL_CITY)
+            existing.variant = variant
         else:
             merged.append(
                 f"{email}: {company} ({variant}) valt samen met "
                 f"{existing.company} ({existing.variant})"
             )
+            existing.also.append(company)
 
     workbook.close()
 
