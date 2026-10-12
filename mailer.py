@@ -1,13 +1,33 @@
 """Templates renderen en mail versturen via SMTP."""
 
+import html
+import mimetypes
 import smtplib
 import ssl
 import sys
 from dataclasses import dataclass
 from email.message import EmailMessage
+from email.utils import make_msgid
 from pathlib import Path
 
 from config import TEMPLATE_DIR
+
+# Per variant optioneel:
+#   templates/<variant>.jpg          afbeelding onderaan de mail (boven de afmeldregel)
+#   templates/bijlagen/<variant>/    elk bestand hierin gaat als bijlage mee
+ATTACHMENT_DIR = TEMPLATE_DIR / "bijlagen"
+
+
+def image_for(variant: str):
+    path = TEMPLATE_DIR / f"{variant}.jpg"
+    return path if path.exists() else None
+
+
+def attachments_for(variant: str) -> list:
+    folder = ATTACHMENT_DIR / variant
+    if not folder.is_dir():
+        return []
+    return sorted(p for p in folder.iterdir() if p.is_file())
 
 
 @dataclass
@@ -66,7 +86,51 @@ def build(config, recipient, message: Message) -> EmailMessage:
     email["Subject"] = message.subject
     email["Reply-To"] = config.reply_to
     email.set_content(message.body)
+
+    image = image_for(recipient.variant)
+    if image:
+        cid = make_msgid()
+        email.add_alternative(_to_html(message.body, cid[1:-1]), subtype="html")
+        email.get_payload()[1].add_related(
+            image.read_bytes(), "image", "jpeg", cid=cid
+        )
+
+    for path in attachments_for(recipient.variant):
+        kind = mimetypes.guess_type(path.name)[0] or "application/octet-stream"
+        maintype, subtype = kind.split("/", 1)
+        email.add_attachment(
+            path.read_bytes(), maintype=maintype, subtype=subtype, filename=path.name
+        )
     return email
+
+
+def _to_html(body: str, cid: str) -> str:
+    """Zet de tekst om naar simpele HTML, met de afbeelding vóór de afmeldregel."""
+    text, sep, footer = body.partition("\n--\n")
+    if not sep:
+        text, footer = body, ""
+
+    def paragraphs(chunk):
+        return "".join(
+            f"<p>{html.escape(part.strip()).replace(chr(10), '<br>')}</p>"
+            for part in chunk.split("\n\n")
+            if part.strip()
+        )
+
+    image = (
+        f'<p><img src="cid:{cid}" alt="Carbstone" width="600" '
+        f'style="max-width:100%;height:auto;display:block"></p>'
+    )
+    small = (
+        f'<div style="color:#777;font-size:12px">{paragraphs(footer)}</div>'
+        if footer.strip()
+        else ""
+    )
+    return (
+        '<html><body style="font-family:Arial,sans-serif;font-size:14px;'
+        f'line-height:1.5;color:#222">{paragraphs(text)}{image}{small}'
+        "</body></html>"
+    )
 
 
 class Sender:

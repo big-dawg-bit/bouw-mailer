@@ -13,7 +13,7 @@ import time
 from datetime import datetime
 
 from config import VARIANTS, Config
-from mailer import Sender, build, load_template, render
+from mailer import Sender, attachments_for, build, image_for, load_template, render
 from recipients import load_recipients
 
 
@@ -66,6 +66,12 @@ def parse_args(argv=None):
 def main(argv=None, sender_factory=Sender) -> int:
     args = parse_args(argv)
     config = Config()
+
+    # De Windows-console kan geen emoji tonen; liever een '?' op het scherm dan
+    # een crash midden in de dry-run. De mail zelf blijft ongewijzigd.
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, "reconfigure"):
+            stream.reconfigure(errors="replace")
     report = load_recipients(config.excel_path)
 
     print(f"Bestand      : {config.excel_path}")
@@ -123,6 +129,11 @@ def main(argv=None, sender_factory=Sender) -> int:
             message = render(recipient.variant, recipient)
             print(f"[{recipient.variant}] naar {recipient.email} ({recipient.company})")
             print(f"Onderwerp: {message.subject}")
+            image = image_for(recipient.variant)
+            if image:
+                print(f"Afbeelding: templates/{image.name}")
+            for path in attachments_for(recipient.variant):
+                print(f"Bijlage   : {path.name} ({path.stat().st_size // 1024} KB)")
             print(message.body)
             print("-" * 60)
 
